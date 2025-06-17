@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Project extends Model {
+    protected $fillable = ['name', 'theme_id', 'user_id'];
+    public function components() {
+        return $this->belongsToMany(Component::class);
+    }
+    public function theme() {
+        return $this->belongsTo(Theme::class);
+    }
+}
