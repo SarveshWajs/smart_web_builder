@@ -4,12 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Project extends Model {
+class Project extends Model
+{
     protected $fillable = ['name', 'theme_id', 'user_id'];
-    public function components() {
+
+    public function components()
+    {
         return $this->belongsToMany(Component::class);
     }
-    public function theme() {
+
+    public function theme()
+    {
         return $this->belongsTo(Theme::class);
+    }
+
+    // Users who have favorited this project
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorites');
     }
 }

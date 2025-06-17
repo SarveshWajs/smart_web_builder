@@ -23,6 +23,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::get('/projects/{project}/preview', [ProjectController::class, 'preview'])->name('projects.preview');
+    Route::get('/projects/{project}/download', [ProjectController::class, 'download'])->name('projects.download');
+    Route::post('/projects/{project}/favorite', [ProjectController::class, 'favorite'])->name('projects.favorite');
+    Route::delete('/projects/{project}/favorite', [ProjectController::class, 'unfavorite'])->name('projects.unfavorite');
+    Route::get('/favorites', [ProjectController::class, 'favorites'])->name('projects.favorites')->middleware('auth');
+Route::get('/my-templates', [ProjectController::class, 'myTemplates'])->name('projects.myTemplates')->middleware('auth');
+Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+
 });
 
 // Admin-only section
@@ -30,6 +37,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::resource('themes', ThemeController::class);
     Route::resource('component', ComponentController::class);
+    Route::patch('/themes/{theme}/toggle', [ThemeController::class, 'toggle'])->name('themes.toggle');
+Route::patch('/components/{component}/toggle', [ComponentController::class, 'toggle'])->name('components.toggle');
 });
 
 require __DIR__.'/auth.php';

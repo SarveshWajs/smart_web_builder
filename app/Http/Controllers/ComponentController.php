@@ -88,4 +88,11 @@ class ComponentController extends Controller
         $component->delete();
         return redirect()->route('component.index')->with('success', 'Component deleted successfully.');
     }
+public function toggle(Component $component)
+{
+    $component->status = !$component->status;
+    $component->save();
+    return back()->with('status', 'Component status updated!');
+}
+
 }

@@ -4,19 +4,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateThemesTable extends Migration
+class CreateFavoritesTable extends Migration
 {
     /**
      * Run the migrations.
      *
      * @return void
      */
-public function up()
+   public function up()
 {
-    Schema::create('themes', function (Blueprint $table) {
+    Schema::create('favorites', function (Blueprint $table) {
         $table->id();
-        $table->string('name');
-        $table->text('css')->nullable()->change();
+        $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        $table->foreignId('project_id')->constrained()->onDelete('cascade');
         $table->timestamps();
     });
 }
@@ -28,6 +28,6 @@ public function up()
      */
     public function down()
     {
-        Schema::dropIfExists('themes');
+        Schema::dropIfExists('favorites');
     }
 }

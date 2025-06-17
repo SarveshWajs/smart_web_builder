@@ -12,10 +12,19 @@ class ProjectController extends Controller
 {
     // Show dashboard with all projects
     public function index()
-    {
-       $projects = Project::with('theme')->latest()->get();
-        return view('projects.dashboard', compact('projects'));
+{
+    $projects = Project::with('theme')->latest()->get();
+
+    // Only fetch themes/components for admin
+    $themes = [];
+    $components = [];
+    if (auth()->check() && auth()->user()->is_admin) {
+        $themes = \App\Models\Theme::latest()->get();
+        $components = \App\Models\Component::latest()->get();
     }
+
+    return view('projects.dashboard', compact('projects', 'themes', 'components'));
+}
 
     // Show form to create a new project
     public function create()
@@ -27,41 +36,40 @@ class ProjectController extends Controller
 
     // Store new project and generate files
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'theme_id' => 'required|exists:themes,id',
-            'component_ids' => 'required|array',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'theme_id' => 'required|exists:themes,id',
+        'component_ids' => 'required|array',
+    ]);
 
-        // Save project with user ownership
-        $project = Project::create([
-            'name' => $request->name,
-            'theme_id' => $request->theme_id,
+    // Save project with user ownership
+    $project = Project::create([
+        'name' => $request->name,
+        'theme_id' => $request->theme_id,
+        'user_id' => auth()->id(), // <-- Add this line
+    ]);
 
-        ]);
+    $project->components()->attach($request->component_ids);
 
-        $project->components()->attach($request->component_ids);
+    // Combine HTML and CSS
+    $html = '';
+    $css = $project->theme->css;
 
-        // Combine HTML and CSS
-        $html = '';
-        $css = $project->theme->css;
-
-        foreach ($project->components as $component) {
-            $html .= $component->html . "\n";
-            $css .= "\n" . $component->css;
-        }
-
-        // Save to file system
-        $dir = public_path("storage/projects/project_{$project->id}");
-        File::ensureDirectoryExists($dir);
-
-        file_put_contents("$dir/index.html", $html);
-        file_put_contents("$dir/style.css", $css);
-
-        return redirect()->route('projects.preview', $project->id);
+    foreach ($project->components as $component) {
+        $html .= $component->html . "\n";
+        $css .= "\n" . $component->css;
     }
 
+    // Save to file system
+    $dir = public_path("storage/projects/project_{$project->id}");
+    File::ensureDirectoryExists($dir);
+
+    file_put_contents("$dir/index.html", $html);
+    file_put_contents("$dir/style.css", $css);
+
+    return redirect()->route('projects.preview', $project->id);
+}
     // Preview a generated project
     public function preview(Project $project)
     {
@@ -82,4 +90,52 @@ class ProjectController extends Controller
 
         return redirect()->route('projects.index')->with('status', 'Project deleted successfully!');
     }
+    public function download($id)
+{
+    $project = Project::findOrFail($id);
+
+    // Assuming your project has a 'code' attribute or a way to get the code as a string
+    $filename = $project->name . '.zip';
+
+    // Example: Export project files as a ZIP (adjust as needed)
+    $zip = new \ZipArchive();
+    $tmpFile = tempnam(sys_get_temp_dir(), 'zip');
+    $zip->open($tmpFile, \ZipArchive::CREATE);
+
+    // Add project files (adjust this to your actual project structure)
+    $zip->addFromString('index.html', $project->code);
+
+    $zip->close();
+
+    return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+}
+
+public function favorite(Project $project)
+{
+    auth()->user()->favorites()->attach($project->id);
+    return back();
+}
+
+public function unfavorite(Project $project)
+{
+    auth()->user()->favorites()->detach($project->id);
+    return back();
+}
+public function favorites()
+{
+    $projects = auth()->user()->favorites()->with('theme')->latest()->get();
+    return view('projects.favorite', compact('projects'));
+}
+
+public function myTemplates()
+{
+    $projects = auth()->user()->projects()->with('theme')->latest()->get();
+    return view('projects.template', compact('projects'));
+}
+public function show($id)
+{
+    $project = Project::findOrFail($id);
+    return view('projects.show', compact('project'));
+}
+
 }

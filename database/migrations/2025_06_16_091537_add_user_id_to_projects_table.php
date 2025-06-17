@@ -11,12 +11,13 @@ class AddUserIdToProjectsTable extends Migration
      *
      * @return void
      */
-    public function up()
-    {
-        Schema::table('projects', function (Blueprint $table) {
-    $table->foreignId('user_id')->constrained()->onDelete('cascade');
-});
-    }
+public function up()
+{
+    Schema::table('projects', function (Blueprint $table) {
+        // Remove or comment out the next line if user_id already exists
+        // $table->foreignId('user_id')->constrained()->onDelete('cascade');
+    });
+}
 
     /**
      * Reverse the migrations.
