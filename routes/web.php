@@ -39,6 +39,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('component', ComponentController::class);
     Route::patch('/themes/{theme}/toggle', [ThemeController::class, 'toggle'])->name('themes.toggle');
 Route::patch('/components/{component}/toggle', [ComponentController::class, 'toggle'])->name('components.toggle');
+Route::delete('/component/{component}/image', [ComponentController::class, 'deleteImage'])->name('component.image.delete');
 });
 
 require __DIR__.'/auth.php';

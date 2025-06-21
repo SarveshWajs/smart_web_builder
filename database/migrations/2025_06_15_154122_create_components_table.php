@@ -18,6 +18,8 @@ public function up()
         $table->string('name');
         $table->text('html');
         $table->text('css')->nullable();
+        $table->text('js')->nullable(); // Add this line for JavaScript code
+        $table->json('images')->nullable();
         $table->timestamps();
     });
 }

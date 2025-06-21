@@ -17,6 +17,8 @@ public function up()
         $table->id();
         $table->string('name');
         $table->foreignId('theme_id')->constrained('themes')->onDelete('cascade');
+        // You may want to add user_id here if you want it from the start:
+        // $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
         $table->timestamps();
     });
 }

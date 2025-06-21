@@ -35,7 +35,7 @@ class ProjectController extends Controller
     }
 
     // Store new project and generate files
-    public function store(Request $request)
+public function store(Request $request)
 {
     $request->validate([
         'name' => 'required|string|max:255',
@@ -47,19 +47,38 @@ class ProjectController extends Controller
     $project = Project::create([
         'name' => $request->name,
         'theme_id' => $request->theme_id,
-        'user_id' => auth()->id(), // <-- Add this line
+        'user_id' => auth()->id(),
     ]);
 
     $project->components()->attach($request->component_ids);
 
-    // Combine HTML and CSS
-    $html = '';
+    // Combine HTML, CSS, and JS
+    $bodyHtml = '';
     $css = $project->theme->css;
+    $js = $project->theme->js ?? '';
 
     foreach ($project->components as $component) {
-        $html .= $component->html . "\n";
+        $bodyHtml .= $component->html . "\n";
         $css .= "\n" . $component->css;
+        if (!empty($component->js)) {
+            $js .= "\n" . $component->js;
+        }
     }
+
+    // Wrap with HTML structure and link to style.css and script.js
+    $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+$bodyHtml
+
+<script src="script.js"></script>
+</body>
+</html>
+HTML;
 
     // Save to file system
     $dir = public_path("storage/projects/project_{$project->id}");
@@ -67,6 +86,7 @@ class ProjectController extends Controller
 
     file_put_contents("$dir/index.html", $html);
     file_put_contents("$dir/style.css", $css);
+    file_put_contents("$dir/script.js", $js); // <-- Add this line
 
     return redirect()->route('projects.preview', $project->id);
 }

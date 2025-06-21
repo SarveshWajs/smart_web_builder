@@ -15,7 +15,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('component.update', $component->id) }}">
+        <form method="POST" action="{{ route('component.update', $component->id) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -32,6 +32,34 @@
             <div class="mb-3">
                 <label for="css" class="form-label">CSS Code (optional)</label>
                 <textarea name="css" class="form-control" id="css" rows="3">{{ old('css', $component->css) }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="js" class="form-label">JavaScript Code (Optional)</label>
+                <textarea name="js" class="form-control" id="js" rows="3">{{ old('js', $component->js) }}</textarea>
+            </div>
+
+           <div class="mb-3">
+    <label class="form-label">Uploaded Images</label>
+    <div class="d-flex flex-wrap gap-2">
+        @if(is_array($component->images))
+            @foreach($component->images as $img)
+                <div class="position-relative" style="display:inline-block;">
+                    <img src="{{ asset('storage/' . $img) }}" alt="Component Image" style="max-width: 120px; max-height: 120px; border:1px solid #ccc; padding:2px;">
+                    <form action="{{ route('component.image.delete', [$component->id, 'image' => urlencode($img)]) }}" method="POST" style="position:absolute; top:2px; right:2px;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this image?')">&times;</button>
+                    </form>
+                </div>
+            @endforeach
+        @endif
+    </div>
+</div>
+            <div class="mb-3">
+                <label for="images" class="form-label">Add/Replace Images (Optional)</label>
+                <input type="file" name="images[]" id="images" class="form-control" multiple accept="image/*">
+                <small class="form-text text-muted">Uploading new images will add to the existing ones.</small>
             </div>
 
             <button type="submit" class="btn btn-primary">Update</button>

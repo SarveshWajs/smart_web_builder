@@ -15,7 +15,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('component.store') }}">
+        <form method="POST" action="{{ route('component.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-3">
@@ -31,6 +31,17 @@
             <div class="mb-3">
                 <label for="css" class="form-label">CSS Code (Optional)</label>
                 <textarea name="css" class="form-control" id="css" rows="3">{{ old('css') }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="js" class="form-label">JavaScript Code (Optional)</label>
+                <textarea name="js" class="form-control" id="js" rows="3">{{ old('js') }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="images" class="form-label">Component Images (Optional)</label>
+                <input type="file" name="images[]" id="images" class="form-control" multiple accept="image/*">
+                <small class="form-text text-muted">You can upload multiple images for components like carousels or slideshows.</small>
             </div>
 
             <button type="submit" class="btn btn-success">Create</button>

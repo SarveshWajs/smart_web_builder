@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <h2 class="mb-4">Explore Templates</h2>
+    <h2 class="mb-4">Template Higlights</h2>
 
     {{-- Status Message --}}
     @if(session('status'))
@@ -48,6 +48,7 @@
                                 </form>
                             </td>
                             <td>{{ $theme->created_at->format('Y-m-d') }}</td>
+
                         </tr>
                     @empty
                         <tr>
@@ -114,13 +115,20 @@
                     <div class="col">
                         <div class="card h-100 shadow-sm">
                             {{-- Preview placeholder (use preview image if available) --}}
-                            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 180px;">
+                             <div class="card-img-top  text-white d-flex align-items-center justify-content-center" style="height: 180px;">
+                                 <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 180px; padding: 0;">
+                                    <iframe src="{{ asset('storage/projects/project_' . $project->id . '/index.html') }}"
+                                            style="width: 100%; height: 180px; border: none;"></iframe>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <h5 class="card-title">{{ $project->name }}</h5>
                                 <p class="card-text">
                                     <strong>Theme:</strong> {{ $project->theme->name ?? 'N/A' }} <br>
-                                    <small class="text-muted">Created on {{ $project->created_at->format('Y-m-d') }}</small>
+                                    <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Created on : {{ $project->created_at->format('Y-m-d') }}</small>
+                                    <small class="text-muted">Created By : {{ $project->user->name ?? 'Unknown' }}</small>
+                                </div>
                                 </p>
                             </div>
                             <div class="card-footer bg-white d-flex justify-content-between align-items-center">
