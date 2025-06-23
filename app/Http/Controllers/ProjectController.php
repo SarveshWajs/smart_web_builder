@@ -114,21 +114,33 @@ HTML;
 {
     $project = Project::findOrFail($id);
 
-    // Assuming your project has a 'code' attribute or a way to get the code as a string
-    $filename = $project->name . '.zip';
+    $folder = public_path("storage/projects/project_{$project->id}");
 
-    // Example: Export project files as a ZIP (adjust as needed)
-    $zip = new \ZipArchive();
-    $tmpFile = tempnam(sys_get_temp_dir(), 'zip');
-    $zip->open($tmpFile, \ZipArchive::CREATE);
+    if (!file_exists($folder)) {
+        abort(404, 'Project files not found.');
+    }
 
-    // Add project files (adjust this to your actual project structure)
-    $zip->addFromString('index.html', $project->code);
+    $zipFile = tempnam(sys_get_temp_dir(), 'project_') . '.zip';
+    $zip = new \ZipArchive;
 
-    $zip->close();
+    if ($zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+        $files = ['index.html', 'style.css', 'script.js'];
 
-    return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+        foreach ($files as $file) {
+            $filePath = $folder . '/' . $file;
+            if (file_exists($filePath)) {
+                $zip->addFile($filePath, $file); // Add with file name only
+            }
+        }
+
+        $zip->close();
+    } else {
+        abort(500, 'Could not create ZIP archive.');
+    }
+
+    return response()->download($zipFile, $project->name . '.zip')->deleteFileAfterSend(true);
 }
+
 
 public function favorite(Project $project)
 {
@@ -153,9 +165,35 @@ public function myTemplates()
     return view('projects.template', compact('projects'));
 }
 public function show($id)
-{
+{   
     $project = Project::findOrFail($id);
     return view('projects.show', compact('project'));
+    //$project = Project::findOrFail($id);
+    //return view('projects.preview', compact('project')); // <- use preview.blade.php for showing project details
 }
+
+public function share($id)
+{
+    $project = Project::where('user_id', auth()->id())->findOrFail($id);
+    $project->is_shared = true;
+    $project->save();
+
+    return redirect()->route('project.shared.view', $project->id);
+}
+
+
+public function viewShared($id)
+{
+    $project = Project::where('is_shared', true)->findOrFail($id);
+    return view('projects.shared', compact('project'));
+    
+    //$project = Project::where('id', $id)
+    //    ->where('is_shared', true)
+    //    ->with('theme')
+    //    ->firstOrFail();
+
+    //return view('projects.preview', compact('project'));
+}
+
 
 }
