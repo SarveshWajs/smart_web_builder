@@ -165,9 +165,35 @@ public function myTemplates()
     return view('projects.template', compact('projects'));
 }
 public function show($id)
-{
+{   
     $project = Project::findOrFail($id);
     return view('projects.show', compact('project'));
+    //$project = Project::findOrFail($id);
+    //return view('projects.preview', compact('project')); // <- use preview.blade.php for showing project details
 }
+
+public function share($id)
+{
+    $project = Project::where('user_id', auth()->id())->findOrFail($id);
+    $project->is_shared = true;
+    $project->save();
+
+    return redirect()->route('project.shared.view', $project->id);
+}
+
+
+public function viewShared($id)
+{
+    $project = Project::where('is_shared', true)->findOrFail($id);
+    return view('projects.shared', compact('project'));
+    
+    //$project = Project::where('id', $id)
+    //    ->where('is_shared', true)
+    //    ->with('theme')
+    //    ->firstOrFail();
+
+    //return view('projects.preview', compact('project'));
+}
+
 
 }
