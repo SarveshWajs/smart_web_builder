@@ -29,6 +29,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/favorites', [ProjectController::class, 'favorites'])->name('projects.favorites')->middleware('auth');
 Route::get('/my-templates', [ProjectController::class, 'myTemplates'])->name('projects.myTemplates')->middleware('auth');
 Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+
 
 });
 
@@ -43,3 +47,5 @@ Route::delete('/component/{component}/image', [ComponentController::class, 'dele
 });
 
 require __DIR__.'/auth.php';
+
+
