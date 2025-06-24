@@ -31,6 +31,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
     Route::get('/projects/{id}/share', [ProjectController::class, 'share'])->name('project.share');
     Route::get('/shared/{id}', [ProjectController::class, 'viewShared'])->name('project.shared.view');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+
 
 });
 

@@ -43,13 +43,12 @@
                                 <span class="badge bg-info mb-2">{{ $project->category }}</span>
                             @endif
                             <div class="mt-auto d-flex justify-content-end align-items-center gap-2">
-    <a
+    <a href="{{ route('projects.edit', $project->id) }}"
+   class="btn btn-warning btn-sm"
+   title="Edit Template">
+    <i class="bi bi-pencil-square"></i> Edit
+</a>
 
-        class="btn btn-warning btn-sm"
-        title="Edit Template"
-    >
-        <i class="bi bi-pencil-square"></i> Edit
-    </a>
 </div>
                         </div>
                     </div>

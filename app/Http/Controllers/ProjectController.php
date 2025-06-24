@@ -195,5 +195,73 @@ public function viewShared($id)
     //return view('projects.preview', compact('project'));
 }
 
+public function edit(Project $project)
+{
+    if (auth()->id() !== $project->user_id) {
+        abort(403);
+    }
+
+    $themes = Theme::all();
+    $components = Component::all();
+
+    return view('projects.edit', compact('project', 'themes', 'components'));
+}
+
+public function update(Request $request, Project $project)
+{
+    if (auth()->id() !== $project->user_id) {
+        abort(403);
+    }
+
+    $request->validate([
+        'theme_id' => 'required|exists:themes,id',
+        'component_ids' => 'required|array',
+    ]);
+
+    // Update project theme
+    $project->theme_id = $request->theme_id;
+    $project->save();
+
+    // Update components
+    $project->components()->sync($request->component_ids);
+
+    // Generate combined HTML, CSS, and JS
+    $bodyHtml = '';
+    $css = $project->theme->css;
+    $js = $project->theme->js ?? '';
+
+    foreach ($project->components as $component) {
+        $bodyHtml .= $component->html . "\n";
+        $css .= "\n" . $component->css;
+        if (!empty($component->js)) {
+            $js .= "\n" . $component->js;
+        }
+    }
+
+    $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+$bodyHtml
+<script src="script.js"></script>
+</body>
+</html>
+HTML;
+
+    // Save the regenerated files
+    $dir = public_path("storage/projects/project_{$project->id}");
+    \Illuminate\Support\Facades\File::ensureDirectoryExists($dir);
+
+    file_put_contents("$dir/index.html", $html);
+    file_put_contents("$dir/style.css", $css);
+    file_put_contents("$dir/script.js", $js);
+
+    return redirect()->route('projects.myTemplates')->with('status', 'Template updated and files regenerated!');
+}
+
+
 
 }

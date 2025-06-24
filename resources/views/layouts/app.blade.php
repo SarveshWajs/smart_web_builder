@@ -7,6 +7,20 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+/* Modern tab style */
+.modern-tab {
+    border-radius: 1.5rem !important;
+    transition: background 0.2s, color 0.2s;
+}
+.modern-tab.active, .modern-tab:hover {
+    background: linear-gradient(90deg, #0d6efd 60%, #6610f2 100%);
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+}
+</style>
+
 </head>
 <body x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }"
       :class="darkMode ? 'bg-dark text-white' : 'bg-light text-dark'">
@@ -101,15 +115,3 @@
     @stack('scripts')
 </body>
 </html>
-<style>
-/* Modern tab style */
-.modern-tab {
-    border-radius: 1.5rem !important;
-    transition: background 0.2s, color 0.2s;
-}
-.modern-tab.active, .modern-tab:hover {
-    background: linear-gradient(90deg, #0d6efd 60%, #6610f2 100%);
-    color: #fff !important;
-    box-shadow: 0 2px 8px rgba(13,110,253,0.08);
-}
-</style>
