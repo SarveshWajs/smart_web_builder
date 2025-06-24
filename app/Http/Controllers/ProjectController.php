@@ -114,21 +114,33 @@ HTML;
 {
     $project = Project::findOrFail($id);
 
-    // Assuming your project has a 'code' attribute or a way to get the code as a string
-    $filename = $project->name . '.zip';
+    $folder = public_path("storage/projects/project_{$project->id}");
 
-    // Example: Export project files as a ZIP (adjust as needed)
-    $zip = new \ZipArchive();
-    $tmpFile = tempnam(sys_get_temp_dir(), 'zip');
-    $zip->open($tmpFile, \ZipArchive::CREATE);
+    if (!file_exists($folder)) {
+        abort(404, 'Project files not found.');
+    }
 
-    // Add project files (adjust this to your actual project structure)
-    $zip->addFromString('index.html', $project->code);
+    $zipFile = tempnam(sys_get_temp_dir(), 'project_') . '.zip';
+    $zip = new \ZipArchive;
 
-    $zip->close();
+    if ($zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+        $files = ['index.html', 'style.css', 'script.js'];
 
-    return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+        foreach ($files as $file) {
+            $filePath = $folder . '/' . $file;
+            if (file_exists($filePath)) {
+                $zip->addFile($filePath, $file); // Add with file name only
+            }
+        }
+
+        $zip->close();
+    } else {
+        abort(500, 'Could not create ZIP archive.');
+    }
+
+    return response()->download($zipFile, $project->name . '.zip')->deleteFileAfterSend(true);
 }
+
 
 public function favorite(Project $project)
 {
@@ -153,9 +165,103 @@ public function myTemplates()
     return view('projects.template', compact('projects'));
 }
 public function show($id)
-{
+{   
     $project = Project::findOrFail($id);
     return view('projects.show', compact('project'));
+    //$project = Project::findOrFail($id);
+    //return view('projects.preview', compact('project')); // <- use preview.blade.php for showing project details
 }
+
+public function share($id)
+{
+    $project = Project::where('user_id', auth()->id())->findOrFail($id);
+    $project->is_shared = true;
+    $project->save();
+
+    return redirect()->route('project.shared.view', $project->id);
+}
+
+
+public function viewShared($id)
+{
+    $project = Project::where('is_shared', true)->findOrFail($id);
+    return view('projects.shared', compact('project'));
+    
+    //$project = Project::where('id', $id)
+    //    ->where('is_shared', true)
+    //    ->with('theme')
+    //    ->firstOrFail();
+
+    //return view('projects.preview', compact('project'));
+}
+
+public function edit(Project $project)
+{
+    if (auth()->id() !== $project->user_id) {
+        abort(403);
+    }
+
+    $themes = Theme::all();
+    $components = Component::all();
+
+    return view('projects.edit', compact('project', 'themes', 'components'));
+}
+
+public function update(Request $request, Project $project)
+{
+    if (auth()->id() !== $project->user_id) {
+        abort(403);
+    }
+
+    $request->validate([
+        'theme_id' => 'required|exists:themes,id',
+        'component_ids' => 'required|array',
+    ]);
+
+    // Update project theme
+    $project->theme_id = $request->theme_id;
+    $project->save();
+
+    // Update components
+    $project->components()->sync($request->component_ids);
+
+    // Generate combined HTML, CSS, and JS
+    $bodyHtml = '';
+    $css = $project->theme->css;
+    $js = $project->theme->js ?? '';
+
+    foreach ($project->components as $component) {
+        $bodyHtml .= $component->html . "\n";
+        $css .= "\n" . $component->css;
+        if (!empty($component->js)) {
+            $js .= "\n" . $component->js;
+        }
+    }
+
+    $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+$bodyHtml
+<script src="script.js"></script>
+</body>
+</html>
+HTML;
+
+    // Save the regenerated files
+    $dir = public_path("storage/projects/project_{$project->id}");
+    \Illuminate\Support\Facades\File::ensureDirectoryExists($dir);
+
+    file_put_contents("$dir/index.html", $html);
+    file_put_contents("$dir/style.css", $css);
+    file_put_contents("$dir/script.js", $js);
+
+    return redirect()->route('projects.myTemplates')->with('status', 'Template updated and files regenerated!');
+}
+
+
 
 }
